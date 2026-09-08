@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поток — программа поиска предназначения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --foam:#f2f9f7;
+    --mist:#d9ede9;
+    --deep:#0d3a42;
+    --deep-2:#124f56;
+    --teal:#1f8a7f;
+    --teal-light:#5fbfae;
+    --sand:#e7dcc2;
+    --ink:#123138;
+    --ink-dim:#4c6b6d;
+    --coral:#d97a5f;
+    --seaweed:#3f8f6a;
+    --font-display:"Fraunces", Georgia, "Times New Roman", serif;
+    --font-body:"Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--foam);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.6;
+  }
+  h1,h2,h3,h4{font-family:var(--font-display); text-wrap:balance; font-weight:600; color:var(--deep);}
+  .draft-badge{
+    position:fixed;
+    top:8px; right:8px;
+    background:var(--coral);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.05em;
+    padding:4px 10px;
+    border-radius:20px;
+    z-index:100;
+    text-transform:uppercase;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:0 20px;}
+
+  /* --- волны-разделители между секциями --- */
+  .wave{display:block; width:100%; height:56px; line-height:0;}
+  .wave svg{display:block; width:100%; height:100%;}
+
+  /* --- герой --- */
+  header.hero{
+    padding:72px 0 0;
+    text-align:center;
+    background:linear-gradient(180deg, var(--deep) 0%, var(--deep-2) 100%);
+    position:relative;
+    overflow:hidden;
+  }
+  header.hero .whale{
+    position:absolute;
+    right:-60px; top:30px;
+    width:340px;
+    opacity:.14;
+    transform:scaleX(-1);
+  }
+  header.hero .inner{position:relative; padding-bottom:56px;}
+  header.hero h1{
+    color:var(--foam);
+    font-size:3.2rem;
+    margin:0 0 14px;
+    letter-spacing:.01em;
+  }
+  header.hero .subtitle{
+    color:#c9e6e0;
+    font-size:1.15rem;
+    max-width:600px;
+    margin:0 auto 30px;
+    line-height:1.7;
+  }
+  .cta-row{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+  .btn{
+    display:inline-block;
+    padding:15px 30px;
+    border-radius:999px;
+    font-weight:700;
+    font-family:var(--font-body);
+    text-decoration:none;
+    font-size:1rem;
+    border:2px solid transparent;
+    cursor:pointer;
+  }
+  .btn-primary{background:linear-gradient(135deg, var(--teal-light), var(--teal)); color:#06211f;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-secondary{background:transparent; color:var(--foam); border-color:rgba(242,249,247,.4);}
+  .btn-secondary:hover{border-color:var(--foam);}
+
+  section{padding:50px 0;}
+  section.bg-foam{background:var(--foam);}
+  section.bg-mist{background:var(--mist);}
+  section h2{font-size:1.7rem; margin:0 0 26px; text-align:center;}
+
+  .shots{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:16px;
+  }
+  .shot{
+    aspect-ratio:16/10;
+    background:linear-gradient(135deg,#e4f2ef,#cfe8e2);
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink-dim);
+    font-size:.9rem;
+    text-align:center;
+    padding:10px;
+  }
+
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .card{
+    background:#fff;
+    border-radius:20px;
+    padding:24px;
+    box-shadow:0 10px 28px rgba(13,58,66,.08);
+  }
+  .card h3{margin-top:0; font-size:1.15rem; display:flex; align-items:center; gap:8px;}
+  .card.for h3{color:var(--seaweed);}
+  .card.not-for h3{color:var(--coral);}
+  .card ul{margin:0; padding-left:20px; color:var(--ink-dim);}
+  .card li{margin-bottom:8px;}
+
+  .modules{display:flex; flex-direction:column; gap:14px;}
+  .module{
+    background:#fff;
+    border-radius:20px;
+    padding:20px 22px;
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+    box-shadow:0 10px 28px rgba(13,58,66,.06);
+  }
+  .module .fluke{
+    flex:0 0 auto;
+    width:40px; height:40px;
+    border-radius:50%;
+    background:var(--mist);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .module .fluke svg{width:20px; height:20px; fill:var(--teal);}
+  .module h4{margin:0 0 4px; color:var(--deep);}
+  .module p{margin:0; color:var(--ink-dim); font-size:.95rem;}
+  .module .meta{font-size:.8rem; color:var(--teal); margin-top:6px; font-weight:700;}
+
+  .prep{
+    background:#fff;
+    border-radius:20px;
+    padding:18px 22px;
+    margin-bottom:16px;
+    color:var(--ink-dim);
+    font-size:.95rem;
+    border-left:4px solid var(--sand);
+  }
+
+  .pricing{display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;}
+  .plan{
+    background:#fff;
+    border-radius:20px;
+    padding:24px;
+    text-align:center;
+    box-shadow:0 10px 28px rgba(13,58,66,.06);
+  }
+  .plan.highlight{box-shadow:0 0 0 2px var(--teal), 0 14px 32px rgba(13,58,66,.14);}
+  .plan .price{font-size:1.7rem; font-weight:800; margin:10px 0; color:var(--deep); font-variant-numeric:tabular-nums;}
+  .plan .price small{font-size:.9rem; color:var(--ink-dim); font-weight:400;}
+  .plan ul{text-align:left; color:var(--ink-dim); font-size:.9rem; padding-left:20px;}
+  .club-note{
+    margin-top:22px;
+    font-size:.85rem;
+    color:var(--ink-dim);
+    text-align:center;
+  }
+
+  .testdrive{
+    background:linear-gradient(135deg, var(--deep), var(--deep-2));
+    border-radius:26px;
+    padding:32px;
+    text-align:center;
+    color:var(--foam);
+  }
+  .testdrive h2{color:var(--foam);}
+  .testdrive .price-tag{
+    display:inline-block;
+    background:var(--teal-light);
+    color:#06211f;
+    font-weight:800;
+    padding:7px 18px;
+    border-radius:999px;
+    margin-bottom:18px;
+  }
+  .testdrive ul{
+    text-align:left;
+    max-width:480px;
+    margin:16px auto;
+    color:#c9e6e0;
+  }
+
+  .reviews{display:flex; flex-direction:column; gap:14px;}
+  .review{
+    background:#fff;
+    border-radius:18px;
+    padding:18px 20px;
+    box-shadow:0 8px 22px rgba(13,58,66,.06);
+  }
+  .review .author{font-weight:700; margin-bottom:6px; color:var(--deep);}
+  .review .text{color:var(--ink-dim); font-size:.95rem;}
+
+  .refund{
+    background:#fff;
+    border-radius:18px;
+    padding:20px;
+    color:var(--ink-dim);
+    font-size:.95rem;
+    border-left:4px solid var(--coral);
+  }
+
+  footer{padding:36px 0; text-align:center; color:#a9cfc9; font-size:.85rem; background:var(--deep);}
+
+  @media (max-width:680px){
+    header.hero h1{font-size:2.2rem;}
+    header.hero .whale{width:220px; top:10px;}
+    .shots{grid-template-columns:1fr;}
+    .two-col{grid-template-columns:1fr;}
+    .pricing{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="draft-badge">draft — тексты не финальные</div>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="fluke-icon" viewBox="0 0 24 24">
+    <path d="M12 3c-1.4 3-4.6 5-9 5 3.6 1.6 6.8 3.6 9 12 2.2-8.4 5.4-10.4 9-12-4.4 0-7.6-2-9-5z"/>
+  </symbol>
+</svg>
+
+<header class="hero">
+  <svg class="whale" viewBox="0 0 400 150" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#eaf7f4" d="M20,82 C42,42 104,30 162,36 C204,40 222,20 236,14
+      C248,26 238,42 212,47 C262,53 322,58 362,66
+      L397,44 C384,70 384,72 402,88
+      C384,86 384,88 397,112 L360,92
+      C320,102 268,108 228,102
+      C178,112 116,112 78,100
+      C58,97 36,94 20,82 Z"/>
+  </svg>
+  <div class="wrap inner">
+    <h1>Поток</h1>
+    <p class="subtitle">
+      Для тех, кто уже реализовался в чём-то — и теперь спрашивает себя:
+      «а что дальше?». Программа Павла Кочкина, чтобы найти направление,
+      от которого горят глаза и приходят деньги.
+    </p>
+    <div class="cta-row">
+      <a href="#testdrive" class="btn btn-primary">Попробовать тест-драйв за 1000 ₽</a>
+      <a href="#pricing" class="btn btn-secondary">Смотреть тарифы</a>
+    </div>
+  </div>
+  <div class="wave" style="color:var(--foam)">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none"><path fill="currentColor" d="M0,20 C280,55 460,0 720,18 C980,36 1160,4 1440,24 L1440,56 L0,56 Z"/></svg>
+  </div>
+</header>
+
+<section class="bg-foam">
+  <div class="wrap">
+    <h2>Как это выглядит</h2>
+    <div class="shots">
+      <div class="shot">заглушка · скрин общего чата с куратором</div>
+      <div class="shot">заглушка · скрин зум-встречи «культурное кафе»</div>
+      <div class="shot">заглушка · скрин трекера практик по дням</div>
+      <div class="shot">заглушка · скрин мастермайнда с Кочкиным</div>
+    </div>
+  </div>
+</section>
+
+<div class="wave" style="color:var(--mist)"><svg viewBox="0 0 1440 56" preserveAspectRatio="none"><path fill="currentColor" d="M0,30 C260,4 480,50 720,26 C960,2 1200,44 1440,18 L1440,56 L0,56 Z"/></svg></div>
+<section class="bg-mist">
+  <div class="wrap">
+    <h2>Кому подходит</h2>
+    <div class="two-col">
+      <div class="card for">
+        <h3><svg width="18" height="18" style="fill:currentColor"><use href="#fluke-icon"/></svg>Для кого</h3>
+        <ul>
+          <li>30+, 35+, 40+ — уже есть опыт и реализация в каких-то сферах</li>
+          <li>Задаётесь вопросом «что дальше», хочется гореть и зарабатывать</li>
+          <li>Готовы искать ответы внутри себя, а не ждать их от кого-то</li>
+          <li>Даже если ещё не начали действовать — важна готовность, не результат</li>
+          <li>Подходит и тем, кто уже пробовал психологов, астрологов, таро, коучей — и не нашёл ответа там</li>
+        </ul>
+      </div>
+      <div class="card not-for">
+        <h3><svg width="18" height="18" style="fill:currentColor"><use href="#fluke-icon"/></svg>Не для кого</h3>
+        <ul>
+          <li>Тем, кто ждёт готового ответа без своей работы</li>
+          <li>Молодёжи без накопленного опыта о себе — программе пока нечем зацепиться</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave" style="color:var(--foam)"><svg viewBox="0 0 1440 56" preserveAspectRatio="none"><path fill="currentColor" d="M0,20 C280,55 460,0 720,18 C980,36 1160,4 1440,24 L1440,56 L0,56 Z"/></svg></div>
+<section class="bg-foam">
+  <div class="wrap">
+    <h2>Программа (тариф ВИП)</h2>
+    <div class="prep">
+      <strong>Настройка на работу</strong> — 1 неделя, 5 заданий: формулируете свой запрос,
+      знакомитесь с форматом. Запрос можно менять по ходу — это не ошибка, а норма.
+      Правило программы: «сделай на тройку, главное сделай — потом можешь изменить»
+      и «только действия берутся в счёт».
+    </div>
+    <div class="modules">
+      <div class="module">
+        <div class="fluke"><svg><use href="#fluke-icon"/></svg></div>
+        <div>
+          <h4>Набор энергии</h4>
+          <p>9 основных практик + 4 бонусные на выходные (например, посмотреть фильм через призму своего запроса).</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="fluke"><svg><use href="#fluke-icon"/></svg></div>
+        <div>
+          <h4>Исследование потенциала</h4>
+          <p>7 основных + 2 бонусные практики. Исследуете свои сильные стороны и ценности.</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="fluke"><svg><use href="#fluke-icon"/></svg></div>
+        <div>
+          <h4>Выбор направления</h4>
+          <p>7 основных + 2 бонусные практики. Собираете подсказки и гипотезы, которые помогают выбрать своё направление.</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="fluke"><svg><use href="#fluke-icon"/></svg></div>
+        <div>
+          <h4>Привычка делать</h4>
+          <p>7 основных + 2 бонусные практики. Через регулярные действия формируете привычку делать.</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center; color:var(--ink-dim); font-size:.85rem; margin-top:18px;">
+      Механика по всей программе: 1 день = 1 практика, выходные — отдых. Есть ещё бонусные модули, они пока в описании не раскрыты.
+    </p>
+  </div>
+</section>
+
+<div class="wave" style="color:var(--mist)"><svg viewBox="0 0 1440 56" preserveAspectRatio="none"><path fill="currentColor" d="M0,30 C260,4 480,50 720,26 C960,2 1200,44 1440,18 L1440,56 L0,56 Z"/></svg></div>
+<section class="bg-mist" id="pricing">
+  <div class="wrap">
+    <h2>Тарифы</h2>
+    <div class="pricing">
+      <div class="plan">
+        <h3>Самостоятельный</h3>
+        <div class="price">65 000 ₽</div>
+        <ul>
+          <li>Общий чат с поддержкой куратора и бадди</li>
+          <li>Зум-встреча раз в неделю — «культурное кафе Потока»</li>
+          <li>Встреча с Павлом Кочкиным раз в 2 недели, с вопросами от участников</li>
+        </ul>
+      </div>
+      <div class="plan highlight">
+        <h3>ВИП</h3>
+        <div class="price">200 000 ₽</div>
+        <ul>
+          <li>Всё из самостоятельного тарифа</li>
+          <li>Личный трекер / тренер</li>
+          <li>Еженедельный мастермайнд в малой группе с участием Кочкина</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <h3>Индивидуальный</h3>
+        <div class="price">800 000 ₽</div>
+        <ul>
+          <li>Трекер/тренер ведёт в личном чате по практикам</li>
+          <li>Личный чат с Павлом Кочкиным</li>
+          <li>Участие в мастермайнде в малой группе</li>
+        </ul>
+      </div>
+    </div>
+    <p class="club-note">
+      Оплата: полностью или в рассрочку от банков.<br>
+      После программы можно остаться в клубе «Культура Потока» за 5000 ₽/мес —
+      доступ к практикам курса и поддержке сообщества.
+    </p>
+  </div>
+</section>
+
+<div class="wave" style="color:var(--foam)"><svg viewBox="0 0 1440 56" preserveAspectRatio="none"><path fill="currentColor" d="M0,20 C280,55 460,0 720,18 C980,36 1160,4 1440,24 L1440,56 L0,56 Z"/></svg></div>
+<section class="bg-foam" id="testdrive">
+  <div class="wrap">
+    <div class="testdrive">
+      <h2>Тест-драйв</h2>
+      <div class="price-tag">1000 ₽ · 5 дней</div>
+      <p>
+        За 5 дней без риска проверьте и почувствуйте эффект от первых практик.
+      </p>
+      <ul>
+        <li>Персональное сопровождение трекера</li>
+        <li>Детальный мотивационный лист: на что и ради чего вы способны</li>
+        <li>Цифровая оценка реализованности</li>
+        <li>Первые практики с мгновенной отдачей</li>
+        <li>Истории решений реальных участников</li>
+        <li>Стратегическая сессия с тренером</li>
+        <li>Детальный персональный план внедрения</li>
+        <li>+30 дней подписки на закрытый клуб «Свет»</li>
+      </ul>
+      <a href="#" class="btn btn-primary">Начать тест-драйв</a>
+    </div>
+  </div>
+</section>
+
+<div class="wave" style="color:var(--mist)"><svg viewBox="0 0 1440 56" preserveAspectRatio="none"><path fill="currentColor" d="M0,30 C260,4 480,50 720,26 C960,2 1200,44 1440,18 L1440,56 L0,56 Z"/></svg></div>
+<section class="bg-mist">
+  <div class="wrap">
+    <h2>Отзывы</h2>
+    <div class="reviews">
+      <div class="review">
+        <div class="author">Заглушка — имя участника</div>
+        <div class="text">draft: текст отзыва появится позже.</div>
+      </div>
+      <div class="review">
+        <div class="author">Заглушка — имя участника</div>
+        <div class="text">draft: текст отзыва появится позже.</div>
+      </div>
+      <div class="review">
+        <div class="author">Заглушка — имя участника</div>
+        <div class="text">draft: текст отзыва появится позже.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave" style="color:var(--foam)"><svg viewBox="0 0 1440 56" preserveAspectRatio="none"><path fill="currentColor" d="M0,20 C280,55 460,0 720,18 C980,36 1160,4 1440,24 L1440,56 L0,56 Z"/></svg></div>
+<section class="bg-foam">
+  <div class="wrap">
+    <h2>Про возврат</h2>
+    <div class="refund">
+      draft: здесь будут условия возврата денег — пока не сформулированы,
+      уточнить у автора программы перед публикацией.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Черновик страницы продукта «Поток». Все тексты — draft, требуют утверждения.
+  </div>
+</footer>
+
+</body>
+</html>
