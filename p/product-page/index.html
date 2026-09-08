@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поток — программа поиска предназначения</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --bg-card:#181b22;
+    --text:#eef0f3;
+    --text-dim:#a6acb8;
+    --accent:#ff8a3d;
+    --accent-dark:#c9631f;
+    --border:#2a2e38;
+    --ok:#5fd08a;
+    --bad:#e0637a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height:1.5;
+  }
+  .draft-badge{
+    position:fixed;
+    top:8px; right:8px;
+    background:var(--bad);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.05em;
+    padding:4px 10px;
+    border-radius:20px;
+    z-index:100;
+    text-transform:uppercase;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:0 20px;}
+  header.hero{
+    padding:60px 0 40px;
+    text-align:center;
+    background:radial-gradient(circle at 50% 0%, #241a12 0%, var(--bg) 70%);
+    border-bottom:1px solid var(--border);
+  }
+  header.hero h1{
+    font-size:2.4rem;
+    margin:0 0 10px;
+    letter-spacing:.02em;
+  }
+  header.hero .subtitle{
+    color:var(--text-dim);
+    font-size:1.1rem;
+    max-width:640px;
+    margin:0 auto 24px;
+  }
+  .cta-row{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+  .btn{
+    display:inline-block;
+    padding:14px 28px;
+    border-radius:10px;
+    font-weight:700;
+    text-decoration:none;
+    font-size:1rem;
+    border:2px solid transparent;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--accent); color:#1a1206;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-secondary{background:transparent; color:var(--text); border-color:var(--border);}
+  .btn-secondary:hover{border-color:var(--accent);}
+  section{padding:48px 0; border-bottom:1px solid var(--border);}
+  section h2{font-size:1.6rem; margin:0 0 24px; text-align:center;}
+  .shots{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:14px;
+  }
+  .shot{
+    aspect-ratio:16/10;
+    background:linear-gradient(135deg,#20242e,#141720);
+    border:1px solid var(--border);
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-dim);
+    font-size:.9rem;
+    text-align:center;
+    padding:10px;
+  }
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px;
+  }
+  .card h3{margin-top:0; font-size:1.15rem;}
+  .card.for h3{color:var(--ok);}
+  .card.not-for h3{color:var(--bad);}
+  .card ul{margin:0; padding-left:20px; color:var(--text-dim);}
+  .card li{margin-bottom:8px;}
+  .modules{display:flex; flex-direction:column; gap:14px;}
+  .module{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 20px;
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+  }
+  .module .num{
+    flex:0 0 auto;
+    width:34px; height:34px;
+    border-radius:50%;
+    background:var(--accent);
+    color:#1a1206;
+    font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .module h4{margin:0 0 4px;}
+  .module p{margin:0; color:var(--text-dim); font-size:.95rem;}
+  .module .meta{font-size:.8rem; color:var(--accent); margin-top:6px;}
+  .prep{
+    background:var(--bg-card);
+    border:1px dashed var(--border);
+    border-radius:12px;
+    padding:16px 20px;
+    margin-bottom:14px;
+    color:var(--text-dim);
+    font-size:.95rem;
+  }
+  .pricing{display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;}
+  .plan{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px;
+    text-align:center;
+  }
+  .plan.highlight{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .plan .price{font-size:1.7rem; font-weight:700; margin:10px 0;}
+  .plan .price small{font-size:.9rem; color:var(--text-dim); font-weight:400;}
+  .plan ul{text-align:left; color:var(--text-dim); font-size:.9rem; padding-left:20px;}
+  .club-note{
+    margin-top:20px;
+    font-size:.85rem;
+    color:var(--text-dim);
+    text-align:center;
+  }
+  .testdrive{
+    background:linear-gradient(135deg,#241a12,var(--bg-card));
+    border:1px solid var(--accent-dark);
+    border-radius:14px;
+    padding:28px;
+    text-align:center;
+  }
+  .testdrive .price-tag{
+    display:inline-block;
+    background:var(--accent);
+    color:#1a1206;
+    font-weight:700;
+    padding:6px 16px;
+    border-radius:20px;
+    margin-bottom:16px;
+  }
+  .testdrive ul{
+    text-align:left;
+    max-width:480px;
+    margin:16px auto;
+    color:var(--text-dim);
+  }
+  .reviews{display:flex; flex-direction:column; gap:14px;}
+  .review{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 20px;
+  }
+  .review .author{font-weight:700; margin-bottom:6px;}
+  .review .text{color:var(--text-dim); font-size:.95rem;}
+  .refund{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px;
+    color:var(--text-dim);
+    font-size:.95rem;
+  }
+  footer{padding:30px 0; text-align:center; color:var(--text-dim); font-size:.85rem;}
+
+  @media (max-width:680px){
+    header.hero h1{font-size:1.8rem;}
+    .shots{grid-template-columns:1fr;}
+    .two-col{grid-template-columns:1fr;}
+    .pricing{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="draft-badge">draft — тексты не финальные</div>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Поток</h1>
+    <p class="subtitle">
+      Для тех, кто уже реализовался в чём-то — и теперь спрашивает себя:
+      «а что дальше?». Программа Павла Кочкина, чтобы найти направление,
+      от которого горят глаза и приходят деньги.
+    </p>
+    <div class="cta-row">
+      <a href="#testdrive" class="btn btn-primary">Попробовать тест-драйв за 1000 ₽</a>
+      <a href="#pricing" class="btn btn-secondary">Смотреть тарифы</a>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Как это выглядит</h2>
+    <div class="shots">
+      <div class="shot">заглушка · скрин общего чата с куратором</div>
+      <div class="shot">заглушка · скрин зум-встречи «культурное кафе»</div>
+      <div class="shot">заглушка · скрин трекера практик по дням</div>
+      <div class="shot">заглушка · скрин мастермайнда с Кочкиным</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Кому подходит</h2>
+    <div class="two-col">
+      <div class="card for">
+        <h3>Для кого</h3>
+        <ul>
+          <li>30+, 35+, 40+ — уже есть опыт и реализация в каких-то сферах</li>
+          <li>Задаётесь вопросом «что дальше», хочется гореть и зарабатывать</li>
+          <li>Готовы искать ответы внутри себя, а не ждать их от кого-то</li>
+          <li>Даже если ещё не начали действовать — важна готовность, не результат</li>
+          <li>Подходит и тем, кто уже пробовал психологов, астрологов, таро, коучей — и не нашёл ответа там</li>
+        </ul>
+      </div>
+      <div class="card not-for">
+        <h3>Не для кого</h3>
+        <ul>
+          <li>Тем, кто ждёт готового ответа без своей работы</li>
+          <li>Молодёжи без накопленного опыта о себе — программе пока нечем зацепиться</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Программа (тариф ВИП)</h2>
+    <div class="prep">
+      <strong>Настройка на работу</strong> — 1 неделя, 5 заданий: формулируете свой запрос,
+      знакомитесь с форматом. Запрос можно менять по ходу — это не ошибка, а норма.
+      Правило программы: «сделай на тройку, главное сделай — потом можешь изменить»
+      и «только действия берутся в счёт».
+    </div>
+    <div class="modules">
+      <div class="module">
+        <div class="num">1</div>
+        <div>
+          <h4>Набор энергии</h4>
+          <p>9 основных практик + 4 бонусные на выходные (например, посмотреть фильм через призму своего запроса).</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="num">2</div>
+        <div>
+          <h4>Исследование потенциала</h4>
+          <p>7 основных + 2 бонусные практики. Исследуете свои сильные стороны и ценности.</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="num">3</div>
+        <div>
+          <h4>Выбор направления</h4>
+          <p>7 основных + 2 бонусные практики. Собираете подсказки и гипотезы, которые помогают выбрать своё направление.</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="num">4</div>
+        <div>
+          <h4>Привычка делать</h4>
+          <p>7 основных + 2 бонусные практики. Через регулярные действия формируете привычку делать.</p>
+          <div class="meta">2 недели</div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center; color:var(--text-dim); font-size:.85rem; margin-top:16px;">
+      Механика по всей программе: 1 день = 1 практика, выходные — отдых. Есть ещё бонусные модули, они пока в описании не раскрыты.
+    </p>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <h2>Тарифы</h2>
+    <div class="pricing">
+      <div class="plan">
+        <h3>Самостоятельный</h3>
+        <div class="price">65 000 ₽</div>
+        <ul>
+          <li>Общий чат с поддержкой куратора и бадди</li>
+          <li>Зум-встреча раз в неделю — «культурное кафе Потока»</li>
+          <li>Встреча с Павлом Кочкиным раз в 2 недели, с вопросами от участников</li>
+        </ul>
+      </div>
+      <div class="plan highlight">
+        <h3>ВИП</h3>
+        <div class="price">200 000 ₽</div>
+        <ul>
+          <li>Всё из самостоятельного тарифа</li>
+          <li>Личный трекер / тренер</li>
+          <li>Еженедельный мастермайнд в малой группе с участием Кочкина</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <h3>Индивидуальный</h3>
+        <div class="price">800 000 ₽</div>
+        <ul>
+          <li>Трекер/тренер ведёт в личном чате по практикам</li>
+          <li>Личный чат с Павлом Кочкиным</li>
+          <li>Участие в мастермайнде в малой группе</li>
+        </ul>
+      </div>
+    </div>
+    <p class="club-note">
+      Оплата: полностью или в рассрочку от банков.<br>
+      После программы можно остаться в клубе «Культура Потока» за 5000 ₽/мес —
+      доступ к практикам курса и поддержке сообщества.
+    </p>
+  </div>
+</section>
+
+<section id="testdrive">
+  <div class="wrap">
+    <h2>Тест-драйв</h2>
+    <div class="testdrive">
+      <div class="price-tag">1000 ₽ · 5 дней</div>
+      <p>
+        За 5 дней без риска проверьте и почувствуйте эффект от первых практик.
+      </p>
+      <ul>
+        <li>Персональное сопровождение трекера</li>
+        <li>Детальный мотивационный лист: на что и ради чего вы способны</li>
+        <li>Цифровая оценка реализованности</li>
+        <li>Первые практики с мгновенной отдачей</li>
+        <li>Истории решений реальных участников</li>
+        <li>Стратегическая сессия с тренером</li>
+        <li>Детальный персональный план внедрения</li>
+        <li>+30 дней подписки на закрытый клуб «Свет»</li>
+      </ul>
+      <a href="#" class="btn btn-primary">Начать тест-драйв</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Отзывы</h2>
+    <div class="reviews">
+      <div class="review">
+        <div class="author">Заглушка — имя участника</div>
+        <div class="text">draft: текст отзыва появится позже.</div>
+      </div>
+      <div class="review">
+        <div class="author">Заглушка — имя участника</div>
+        <div class="text">draft: текст отзыва появится позже.</div>
+      </div>
+      <div class="review">
+        <div class="author">Заглушка — имя участника</div>
+        <div class="text">draft: текст отзыва появится позже.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Про возврат</h2>
+    <div class="refund">
+      draft: здесь будут условия возврата денег — пока не сформулированы,
+      уточнить у автора программы перед публикацией.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Черновик страницы продукта «Поток». Все тексты — draft, требуют утверждения.
+  </div>
+</footer>
+
+</body>
+</html>
