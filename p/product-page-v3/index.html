@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поток на Steam</title>
+<style>
+  :root{
+    --bg:#1b2838;
+    --bg-2:#16202d;
+    --bg-3:#0e1620;
+    --header:#171a21;
+    --panel:#2a3f5a;
+    --line:#000;
+    --text:#c6d4df;
+    --text-dim:#8f98a0;
+    --blue:#66c0f4;
+    --green:#a4d007;
+    --green-dark:#4c6b22;
+    --green-mid:#232a15;
+    --tag-bg:#67707e29;
+    --tag-border:#67707e;
+    --font:"Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font);
+    font-size:14px;
+    line-height:1.5;
+  }
+  a{color:var(--blue); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .draft-badge{
+    position:fixed; top:8px; right:8px;
+    background:#c0392b; color:#fff; font-size:10px; font-weight:700;
+    letter-spacing:.05em; padding:4px 10px; border-radius:3px; z-index:100;
+    text-transform:uppercase;
+  }
+  .topbar{background:var(--header); padding:10px 0; border-bottom:1px solid #000;}
+  .topbar .wrap{display:flex; align-items:center; gap:18px;}
+  .logo{font-weight:800; font-size:1.1rem; color:#fff; letter-spacing:.03em;}
+  .logo span{color:var(--green);}
+  .topnav{display:flex; gap:16px; font-size:.85rem; color:var(--text-dim);}
+  .wrap{max-width:940px; margin:0 auto; padding:0 16px;}
+  .crumb{padding:14px 0 6px; font-size:.8rem; color:var(--text-dim);}
+  .crumb a{color:var(--text-dim);}
+  .crumb .cur{color:var(--text);}
+
+  /* капсула-баннер */
+  .capsule{
+    background:linear-gradient(135deg,#0e1620 0%, #1b2838 55%, #2a3f5a 100%);
+    border-radius:3px;
+    padding:34px 30px;
+    margin-bottom:16px;
+    border:1px solid #000;
+    position:relative;
+    overflow:hidden;
+  }
+  .capsule h1{
+    margin:0; font-size:2.4rem; color:#fff; font-weight:800; letter-spacing:.01em;
+    text-shadow:0 2px 6px rgba(0,0,0,.5);
+  }
+  .capsule .tagline{color:var(--blue); font-size:1.05rem; margin-top:8px; max-width:520px;}
+
+  .main-row{display:grid; grid-template-columns:1fr 300px; gap:16px; margin-bottom:16px;}
+
+  /* левая колонка — скрины */
+  .gallery-main{
+    aspect-ratio:16/9;
+    background:linear-gradient(135deg,#26384d,#16202d);
+    border:1px solid #000;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-dim); font-size:.9rem; text-align:center; padding:10px;
+  }
+  .gallery-thumbs{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:6px;}
+  .thumb{
+    aspect-ratio:16/9;
+    background:linear-gradient(135deg,#26384d,#16202d);
+    border:1px solid #000;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-dim); font-size:.65rem; text-align:center; padding:4px;
+  }
+
+  /* правая колонка — сайдбар покупки */
+  .sidebar{display:flex; flex-direction:column; gap:10px;}
+  .demo-box{
+    background:var(--panel); border:1px solid #000; padding:12px 14px;
+  }
+  .demo-box .label{color:var(--green); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; font-weight:700;}
+  .demo-box .title{color:#fff; font-weight:700; margin:4px 0 8px;}
+  .demo-box .price-row{display:flex; align-items:center; justify-content:space-between;}
+  .demo-box .price{color:var(--green); font-weight:700;}
+
+  .buy-box{background:var(--panel); border:1px solid #000; padding:0;}
+  .plan-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 14px; border-bottom:1px solid #000; cursor:pointer;
+  }
+  .plan-row:last-child{border-bottom:none;}
+  .plan-row.rec{background:#1e3320;}
+  .plan-row .name{font-size:.9rem;}
+  .plan-row .rec-tag{display:block; color:var(--green); font-size:.65rem; text-transform:uppercase; margin-top:2px;}
+  .plan-row .price{color:#fff; font-weight:700; white-space:nowrap;}
+  .buy-cta{padding:12px 14px;}
+  .btn-buy{
+    display:block; width:100%; text-align:center; background:linear-gradient(90deg,#75b022,#588a1b);
+    color:#eaffb0; font-weight:700; padding:12px; border:none; border-radius:2px;
+    font-size:.95rem; cursor:pointer; font-family:var(--font);
+  }
+  .btn-buy:hover{filter:brightness(1.1);}
+
+  .tags-box{background:var(--panel); border:1px solid #000; padding:12px 14px;}
+  .tags-box .h{font-size:.72rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px;}
+  .tags{display:flex; flex-wrap:wrap; gap:6px;}
+  .tag{
+    background:var(--tag-bg); border:1px solid var(--tag-border); color:var(--text);
+    font-size:.75rem; padding:4px 9px; border-radius:2px;
+  }
+
+  .review-box{background:var(--panel); border:1px solid #000; padding:12px 14px;}
+  .review-box .h{font-size:.72rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:6px;}
+  .review-state{color:var(--text-dim); font-size:.85rem;}
+  .review-state b{color:var(--text);}
+
+  .info-box{background:var(--panel); border:1px solid #000; padding:12px 14px; font-size:.8rem;}
+  .info-box dl{margin:0;}
+  .info-box dt{color:var(--text-dim); margin-top:8px;}
+  .info-box dt:first-child{margin-top:0;}
+  .info-box dd{margin:2px 0 0; color:var(--text);}
+
+  /* блок фич-иконок */
+  .features-row{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    background:var(--bg-2); border:1px solid #000; padding:16px; margin-bottom:16px;
+  }
+  .feature{display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;}
+  .feature svg{width:26px; height:26px; fill:var(--text);}
+  .feature span{font-size:.72rem; color:var(--text-dim);}
+
+  section.block{margin-bottom:16px;}
+  .panel{background:var(--bg-2); border:1px solid #000; padding:20px;}
+  .panel h2{
+    margin:0 0 14px; font-size:1.1rem; color:#fff; text-transform:uppercase;
+    letter-spacing:.03em; border-bottom:1px solid #3c4a5c; padding-bottom:10px;
+  }
+
+  /* сравнение тарифов вместо таблицы языков */
+  .compare{width:100%; border-collapse:collapse; font-size:.82rem;}
+  .compare th, .compare td{padding:8px 10px; border-bottom:1px solid #3c4a5c; text-align:center;}
+  .compare th{color:var(--text-dim); font-weight:600; text-transform:uppercase; font-size:.7rem;}
+  .compare td:first-child, .compare th:first-child{text-align:left; color:var(--text);}
+  .compare .yes{color:var(--green); font-weight:700;}
+  .compare .no{color:#4a5566;}
+
+  /* about */
+  .about p{color:var(--text); margin:0 0 12px;}
+  .about .feat-list{list-style:none; padding:0; margin:14px 0 0; display:flex; flex-direction:column; gap:8px;}
+  .about .feat-list li{padding-left:20px; position:relative; color:var(--text);}
+  .about .feat-list li::before{content:"▸"; position:absolute; left:0; color:var(--blue);}
+  .about .weeks{color:var(--blue); font-size:.8rem; margin-left:6px;}
+
+  /* системные требования */
+  .req-cols{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .req-cols h3{color:#fff; font-size:.85rem; text-transform:uppercase; margin:0 0 10px;}
+  .req-cols ul{list-style:none; padding:0; margin:0; font-size:.82rem; color:var(--text-dim);}
+  .req-cols li{padding:5px 0; border-bottom:1px solid #253244;}
+  .req-cols li b{color:var(--text); display:inline-block; min-width:120px;}
+
+  /* достижения */
+  .ach-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px;}
+  .ach{
+    display:flex; gap:10px; align-items:center; background:var(--bg-3);
+    border:1px solid #000; padding:8px 10px;
+  }
+  .ach .icon{
+    width:36px; height:36px; flex:0 0 auto; border-radius:3px;
+    background:linear-gradient(135deg,#3c5a3a,#213321);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ach .icon svg{width:18px; height:18px; fill:var(--green);}
+  .ach .name{font-size:.78rem; color:var(--text);}
+  .ach .rate{font-size:.68rem; color:var(--text-dim);}
+
+  /* отзывы участников */
+  .reviews-list{display:flex; flex-direction:column; gap:10px;}
+  .review-card{background:var(--bg-3); border:1px solid #000; padding:12px 14px; display:flex; gap:10px;}
+  .review-card .thumb-up{color:var(--green); font-size:1.1rem; flex:0 0 auto;}
+  .review-card .body{font-size:.85rem;}
+  .review-card .author{color:var(--blue); font-size:.78rem; margin-bottom:3px;}
+
+  footer{padding:24px 0 40px; text-align:center; color:#4a5566; font-size:.72rem;}
+  footer a{color:#4a5566;}
+
+  @media (max-width:720px){
+    .main-row{grid-template-columns:1fr;}
+    .capsule h1{font-size:1.7rem;}
+    .features-row{grid-template-columns:repeat(2,1fr);}
+    .req-cols{grid-template-columns:1fr;}
+    .gallery-thumbs{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div class="draft-badge">draft — тексты не финальные</div>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="ic-person" viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.4 0-9 2.2-9 5v3h18v-3c0-2.8-4.6-5-9-5z"/></symbol>
+  <symbol id="ic-cloud" viewBox="0 0 24 24"><path d="M19 18H6a4 4 0 01-.4-8 6 6 0 0111.6 1.8A3.5 3.5 0 0119 18z"/></symbol>
+  <symbol id="ic-badge" viewBox="0 0 24 24"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.3L12 14.3 7.2 16.8l.9-5.3L4.2 7.7l5.4-.8z"/></symbol>
+  <symbol id="ic-group" viewBox="0 0 24 24"><path d="M9 12a4 4 0 100-8 4 4 0 000 8zm7-2a3 3 0 100-6 3 3 0 000 6zm-7 3c-3.3 0-9 1.7-9 5v3h13v-3c0-1.2.5-2.2 1.3-3A13 13 0 009 13zm7 0c-.5 0-1.1 0-1.7.1 1 .9 1.7 2.1 1.7 3.9v3h7v-3c0-2.9-4.1-4.6-7-4.6z"/></symbol>
+</svg>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo">ОБРАЗОВАТЕЛЬНЫЙ <span>STEAM</span></div>
+    <div class="topnav">
+      <span>МАГАЗИН</span><span>СООБЩЕСТВО</span><span>МОИ ПРОГРАММЫ</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="crumb">
+    <a href="#">Все программы</a> &gt; <a href="#">Самопознание</a> &gt; <span class="cur">Поток</span>
+  </div>
+
+  <div class="capsule">
+    <h1>ПОТОК</h1>
+    <p class="tagline">Найди направление, от которого горят глаза — программа Павла Кочкина для тех, кто уже реализовался и спрашивает себя «а что дальше?»</p>
+  </div>
+
+  <div class="main-row">
+    <div class="gallery">
+      <div class="gallery-main">заглушка · главный скрин — общий чат Потока с куратором</div>
+      <div class="gallery-thumbs">
+        <div class="thumb">зум «культурное кафе»</div>
+        <div class="thumb">трекер практик по дням</div>
+        <div class="thumb">мастермайнд с Кочкиным</div>
+        <div class="thumb">лист настройки на работу</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="demo-box">
+        <div class="label">Попробовать перед стартом</div>
+        <div class="title">Тест-драйв Потока — 5 дней</div>
+        <div class="price-row">
+          <span style="color:var(--text-dim); font-size:.78rem;">без риска</span>
+          <span class="price">1000 ₽</span>
+        </div>
+      </div>
+
+      <div class="buy-box">
+        <div class="plan-row">
+          <div>
+            <div class="name">Самостоятельный</div>
+          </div>
+          <div class="price">65 000 ₽</div>
+        </div>
+        <div class="plan-row rec">
+          <div>
+            <div class="name">ВИП</div>
+            <span class="rec-tag">выбор большинства</span>
+          </div>
+          <div class="price">200 000 ₽</div>
+        </div>
+        <div class="plan-row">
+          <div>
+            <div class="name">Индивидуальный</div>
+          </div>
+          <div class="price">800 000 ₽</div>
+        </div>
+        <div class="buy-cta">
+          <button class="btn-buy">Добавить в свой путь</button>
+        </div>
+      </div>
+
+      <div class="tags-box">
+        <div class="h">Популярные метки</div>
+        <div class="tags">
+          <span class="tag">Самопознание</span>
+          <span class="tag">Практика каждый день</span>
+          <span class="tag">Наставничество</span>
+          <span class="tag">Малые группы</span>
+          <span class="tag">40+</span>
+          <span class="tag">Без готовых ответов</span>
+        </div>
+      </div>
+
+      <div class="review-box">
+        <div class="h">Отзывы участников</div>
+        <div class="review-state">draft: <b>пока недостаточно отзывов</b> для оценки — соберём после первых потоков.</div>
+      </div>
+
+      <div class="info-box">
+        <dl>
+          <dt>Автор и куратор</dt>
+          <dd>Павел Кочкин</dd>
+          <dt>Доступ</dt>
+          <dd>набор идёт постоянно</dd>
+          <dt>Формат</dt>
+          <dd>онлайн, чат + зум-встречи</dd>
+          <dt>Возраст участников</dt>
+          <dd>рекомендовано 30+</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="features-row">
+    <div class="feature"><svg><use href="#ic-person"/></svg><span>Личный трекер (ВИП и индивидуальный)</span></div>
+    <div class="feature"><svg><use href="#ic-cloud"/></svg><span>Доступ с любого устройства</span></div>
+    <div class="feature"><svg><use href="#ic-badge"/></svg><span>Вехи и практики с отметкой прогресса</span></div>
+    <div class="feature"><svg><use href="#ic-group"/></svg><span>Закрытое сообщество участников</span></div>
+  </div>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Что входит в тариф</h2>
+      <div style="overflow-x:auto;">
+        <table class="compare">
+          <thead>
+            <tr><th>Что входит</th><th>Самостоятельный</th><th>ВИП</th><th>Индивидуальный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Общий чат, куратор и бадди</td><td class="yes">есть</td><td class="yes">есть</td><td class="no">—</td></tr>
+            <tr><td>«Культурное кафе» — зум раз в неделю</td><td class="yes">есть</td><td class="yes">есть</td><td class="no">—</td></tr>
+            <tr><td>Встреча с Кочкиным раз в 2 недели</td><td class="yes">есть</td><td class="yes">есть</td><td class="no">—</td></tr>
+            <tr><td>Личный трекер / тренер</td><td class="no">—</td><td class="yes">есть</td><td class="yes">есть</td></tr>
+            <tr><td>Мастермайнд в малой группе с Кочкиным</td><td class="no">—</td><td class="yes">еженедельно</td><td class="yes">есть</td></tr>
+            <tr><td>Личный чат с Павлом Кочкиным</td><td class="no">—</td><td class="no">—</td><td class="yes">есть</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel about">
+      <h2>О Потоке</h2>
+      <p>
+        Настройка на работу — неделя, 5 заданий: формулируете свой запрос и знакомитесь
+        с форматом. Запрос можно менять по ходу — это норма. Правило программы:
+        «сделай на тройку, главное сделай — потом можешь изменить», и «только действия берутся в счёт».
+      </p>
+      <ul class="feat-list">
+        <li><b>Набор энергии</b> — 9 практик + 4 бонусные на выходные<span class="weeks">2 недели</span></li>
+        <li><b>Исследование потенциала</b> — сильные стороны и ценности, 7 практик<span class="weeks">2 недели</span></li>
+        <li><b>Выбор направления</b> — гипотезы и подсказки для своего пути, 7 практик<span class="weeks">2 недели</span></li>
+        <li><b>Привычка делать</b> — регулярные действия вместо разговоров, 7 практик<span class="weeks">2 недели</span></li>
+      </ul>
+      <p style="margin-top:14px; color:var(--text-dim); font-size:.82rem;">
+        Механика: 1 день = 1 практика, выходные — отдых. Есть ещё бонусные модули,
+        они пока не раскрыты в описании.
+      </p>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Что нужно для участия</h2>
+      <div class="req-cols">
+        <div>
+          <h3>Обязательно</h3>
+          <ul>
+            <li><b>Время:</b> 1 практика в день</li>
+            <li><b>Связь:</b> доступ к Zoom и чату</li>
+            <li><b>Готовность:</b> искать ответы внутри себя, без готовых решений</li>
+            <li><b>Опыт:</b> уже реализовались хоть в чём-то — есть на что опереться</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Будет плюсом</h3>
+          <ul>
+            <li><b>Опыт:</b> уже пробовали психологов, коучей, астрологов, таро</li>
+            <li><b>Запрос:</b> чётко сформулированный вопрос «что дальше»</li>
+            <li><b>Темп:</b> готовность к плотному графику на тарифе ВИП</li>
+            <li><b>Возраст:</b> 30+ — есть накопленный опыт о себе</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Вехи Потока</h2>
+      <div class="ach-grid">
+        <div class="ach"><div class="icon"><svg><use href="#ic-badge"/></svg></div><div><div class="name">Настройка завершена</div><div class="rate">draft: % участников</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-badge"/></svg></div><div><div class="name">Первая практика набора энергии</div><div class="rate">draft: % участников</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-badge"/></svg></div><div><div class="name">7 дней практик подряд</div><div class="rate">draft: % участников</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-badge"/></svg></div><div><div class="name">Гипотеза направления найдена</div><div class="rate">draft: % участников</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-badge"/></svg></div><div><div class="name">Привычка делать сформирована</div><div class="rate">draft: % участников</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-badge"/></svg></div><div><div class="name">Пройдены все 4 модуля</div><div class="rate">draft: % участников</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Отзывы участников</h2>
+      <div class="reviews-list">
+        <div class="review-card"><div class="thumb-up">👍</div><div class="body"><div class="author">draft — имя участника</div>текст отзыва появится позже</div></div>
+        <div class="review-card"><div class="thumb-up">👍</div><div class="body"><div class="author">draft — имя участника</div>текст отзыва появится позже</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Про возврат</h2>
+      <p style="margin:0; color:var(--text-dim); font-size:.85rem;">
+        draft: условия возврата денег пока не сформулированы — уточнить у автора программы перед публикацией.
+      </p>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    Черновик страницы продукта «Поток», собран по визуальному языку Steam. Все тексты — draft.
+  </div>
+</footer>
+
+</body>
+</html>
