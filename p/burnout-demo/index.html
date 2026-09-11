@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Режим энергосбережения на Steam</title>
+<style>
+  :root{
+    --bg:#1b2838;
+    --bg-2:#16202d;
+    --bg-3:#0e1620;
+    --header:#171a21;
+    --panel:#2a3f5a;
+    --text:#c6d4df;
+    --text-dim:#8f98a0;
+    --blue:#66c0f4;
+    --green:#a4d007;
+    --tag-bg:#67707e29;
+    --tag-border:#67707e;
+    --old-price:#6b7078;
+    --font:"Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:var(--font); font-size:14px; line-height:1.5;}
+  a{color:var(--blue); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .draft-badge{
+    position:fixed; top:8px; right:8px; background:#c0392b; color:#fff; font-size:10px; font-weight:700;
+    letter-spacing:.05em; padding:4px 10px; border-radius:3px; z-index:100; text-transform:uppercase;
+  }
+  .topbar{background:var(--header); padding:10px 0; border-bottom:1px solid #000;}
+  .topbar .wrap{display:flex; align-items:center; gap:18px;}
+  .logo{font-weight:800; font-size:1.1rem; color:#fff; letter-spacing:.03em;}
+  .logo span{color:var(--green);}
+  .topnav{display:flex; gap:16px; font-size:.85rem; color:var(--text-dim);}
+  .wrap{max-width:940px; margin:0 auto; padding:0 16px;}
+  .crumb{padding:14px 0 6px; font-size:.8rem; color:var(--text-dim);}
+  .crumb a{color:var(--text-dim);}
+  .crumb .cur{color:var(--text);}
+
+  .capsule{
+    background:linear-gradient(135deg,#0e1620 0%, #1b2838 55%, #2a3f5a 100%);
+    border-radius:3px; padding:34px 30px; margin-bottom:16px; border:1px solid #000;
+  }
+  .capsule .kicker{color:var(--green); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700;}
+  .capsule h1{margin:6px 0 0; font-size:2.1rem; color:#fff; font-weight:800; text-shadow:0 2px 6px rgba(0,0,0,.5);}
+  .capsule .tagline{color:var(--blue); font-size:1.02rem; margin-top:10px; max-width:560px;}
+
+  .main-row{display:grid; grid-template-columns:1fr 300px; gap:16px; margin-bottom:16px;}
+
+  .gallery-main{
+    aspect-ratio:16/9; background:linear-gradient(135deg,#26384d,#16202d); border:1px solid #000;
+    display:flex; align-items:center; justify-content:center; color:var(--text-dim);
+    font-size:.9rem; text-align:center; padding:10px;
+  }
+  .gallery-thumbs{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:6px;}
+  .thumb{
+    aspect-ratio:16/9; background:linear-gradient(135deg,#26384d,#16202d); border:1px solid #000;
+    display:flex; align-items:center; justify-content:center; color:var(--text-dim);
+    font-size:.65rem; text-align:center; padding:4px;
+  }
+
+  .sidebar{display:flex; flex-direction:column; gap:10px;}
+  .logo-box{background:var(--panel); border:1px solid #000; padding:14px; display:flex; gap:12px; align-items:flex-start;}
+  .logo-box .mark{
+    flex:0 0 auto; width:56px; height:56px; border-radius:8px;
+    background:radial-gradient(circle at 30% 30%, #ffd23f, #6b4a00 85%);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .logo-box .mark svg{width:30px; height:30px; fill:#1b1300;}
+  .logo-box .copy .name{color:#fff; font-weight:700; font-size:.92rem;}
+  .logo-box .copy .desc{color:var(--text-dim); font-size:.76rem; margin-top:3px;}
+
+  .buy-box{background:var(--panel); border:1px solid #000; padding:14px;}
+  .buy-box .discount-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .off-pill{background:var(--green); color:#1b2400; font-weight:800; font-size:.78rem; padding:3px 7px; border-radius:2px;}
+  .price-line{display:flex; align-items:baseline; gap:8px;}
+  .price-line .old{color:var(--old-price); text-decoration:line-through; font-size:.9rem;}
+  .price-line .new{color:var(--green); font-weight:800; font-size:1.3rem;}
+  .btn-buy{
+    display:block; width:100%; text-align:center; margin-top:10px;
+    background:linear-gradient(90deg,#75b022,#588a1b); color:#eaffb0; font-weight:700;
+    padding:12px; border:none; border-radius:2px; font-size:.95rem; cursor:pointer; font-family:var(--font);
+  }
+  .btn-buy:hover{filter:brightness(1.1);}
+  .honest-note{color:var(--text-dim); font-size:.72rem; margin-top:8px; font-style:italic;}
+
+  .tags-box{background:var(--panel); border:1px solid #000; padding:12px 14px;}
+  .tags-box .h{font-size:.72rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px;}
+  .tags{display:flex; flex-wrap:wrap; gap:6px;}
+  .tag{background:var(--tag-bg); border:1px solid var(--tag-border); color:var(--text); font-size:.75rem; padding:4px 9px; border-radius:2px;}
+
+  .review-box{background:var(--panel); border:1px solid #000; padding:12px 14px;}
+  .review-box .h{font-size:.72rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:6px;}
+  .review-state{color:var(--green); font-size:.85rem; font-weight:700;}
+  .review-state small{display:block; color:var(--text-dim); font-weight:400; font-size:.72rem; margin-top:3px;}
+
+  .info-box{background:var(--panel); border:1px solid #000; padding:12px 14px; font-size:.8rem;}
+  .info-box dl{margin:0;}
+  .info-box dt{color:var(--text-dim); margin-top:8px;}
+  .info-box dt:first-child{margin-top:0;}
+  .info-box dd{margin:2px 0 0; color:var(--text);}
+
+  .features-row{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    background:var(--bg-2); border:1px solid #000; padding:16px; margin-bottom:16px;
+  }
+  .feature{display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;}
+  .feature svg{width:24px; height:24px; fill:var(--text);}
+  .feature span{font-size:.72rem; color:var(--text-dim);}
+
+  section.block{margin-bottom:16px;}
+  .panel{background:var(--bg-2); border:1px solid #000; padding:20px;}
+  .panel h2{
+    margin:0 0 14px; font-size:1.1rem; color:#fff; text-transform:uppercase;
+    letter-spacing:.03em; border-bottom:1px solid #3c4a5c; padding-bottom:10px;
+  }
+  .panel .sub{color:var(--text-dim); font-size:.82rem; margin:0 0 14px;}
+
+  /* бандл */
+  .bundle{display:flex; gap:16px; align-items:center; flex-wrap:wrap;}
+  .bundle .items{flex:1; min-width:220px;}
+  .bundle .item-row{display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid #253244; font-size:.88rem;}
+  .bundle .item-row:last-child{border-bottom:none;}
+  .bundle .buy{flex:0 0 auto; text-align:center; background:var(--bg-3); border:1px solid #000; padding:14px; min-width:170px;}
+  .bundle .buy .off-pill{margin-bottom:8px;}
+  .bundle .buy .new{display:block; color:var(--green); font-weight:800; font-size:1.2rem; margin-top:4px;}
+  .bundle .buy .old{color:var(--old-price); text-decoration:line-through; font-size:.85rem;}
+  .bundle-note{margin-top:10px; color:var(--text-dim); font-size:.75rem;}
+
+  /* dlc */
+  .dlc-list{display:flex; flex-direction:column; gap:8px;}
+  .dlc-row{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background:var(--bg-3); border:1px solid #000; padding:10px 14px;
+  }
+  .dlc-row .name{font-size:.88rem; color:#fff;}
+  .dlc-row .desc{font-size:.76rem; color:var(--text-dim); margin-top:2px;}
+  .dlc-row .price{color:var(--blue); font-weight:700; white-space:nowrap; font-size:.9rem;}
+
+  .req-cols{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .req-cols h3{color:#fff; font-size:.85rem; text-transform:uppercase; margin:0 0 10px;}
+  .req-cols ul{list-style:none; padding:0; margin:0; font-size:.82rem; color:var(--text-dim);}
+  .req-cols li{padding:5px 0; border-bottom:1px solid #253244;}
+  .req-cols li b{color:var(--text); display:inline-block; min-width:110px;}
+
+  .ach-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px;}
+  .ach{display:flex; gap:10px; align-items:center; background:var(--bg-3); border:1px solid #000; padding:8px 10px;}
+  .ach .icon{
+    width:36px; height:36px; flex:0 0 auto; border-radius:3px;
+    background:linear-gradient(135deg,#5a4a1e,#332a12); display:flex; align-items:center; justify-content:center;
+  }
+  .ach .icon svg{width:18px; height:18px; fill:var(--green);}
+  .ach .name{font-size:.8rem; color:var(--text); font-weight:600;}
+  .ach .cond{font-size:.7rem; color:var(--text-dim);}
+
+  .reviews-list{display:flex; flex-direction:column; gap:10px;}
+  .review-card{background:var(--bg-3); border:1px solid #000; padding:12px 14px; display:flex; gap:10px;}
+  .review-card .thumb-up{color:var(--green); font-size:1.1rem; flex:0 0 auto;}
+  .review-card .body{font-size:.85rem;}
+  .review-card .meta{color:var(--text-dim); font-size:.74rem; margin-top:6px;}
+
+  footer{padding:24px 0 40px; text-align:center; color:#4a5566; font-size:.72rem;}
+
+  @media (max-width:720px){
+    .main-row{grid-template-columns:1fr;}
+    .capsule h1{font-size:1.6rem;}
+    .features-row{grid-template-columns:repeat(2,1fr);}
+    .req-cols{grid-template-columns:1fr;}
+    .gallery-thumbs{grid-template-columns:repeat(2,1fr);}
+    .dlc-row{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<div class="draft-badge">draft — тексты не финальные</div>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="ic-battery" viewBox="0 0 24 24"><path d="M17 6H4a2 2 0 00-2 2v8a2 2 0 002 2h13a2 2 0 002-2v-1h1a1 1 0 001-1v-4a1 1 0 00-1-1h-1V8a2 2 0 00-2-2zM6 10h4v4H6z"/></symbol>
+  <symbol id="ic-headphones" viewBox="0 0 24 24"><path d="M12 3a7 7 0 00-7 7v6a2 2 0 002 2h1v-6H6v-2a6 6 0 1112 0v2h-2v6h1a2 2 0 002-2v-6a7 7 0 00-7-7z"/></symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 10.4l4 2.3-.8 1.4-4.7-2.7V7h1.5z"/></symbol>
+  <symbol id="ic-bed" viewBox="0 0 24 24"><path d="M3 7v13h2v-3h14v3h2v-8a4 4 0 00-4-4h-3v3H9V8a1 1 0 00-1-1H4a1 1 0 00-1 1zm2 2h3v3H5V9z"/></symbol>
+  <symbol id="ic-trophy" viewBox="0 0 24 24"><path d="M6 3h12v3h2a3 3 0 01-3 3h-.3A6 6 0 0113 13.9V16h2v2H9v-2h2v-2.1A6 6 0 017.3 9H7a3 3 0 01-3-3h2V3z"/></symbol>
+</svg>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo">ОБРАЗОВАТЕЛЬНЫЙ <span>STEAM</span></div>
+    <div class="topnav"><span>МАГАЗИН</span><span>СООБЩЕСТВО</span><span>МОИ ПРОГРАММЫ</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="crumb">
+    <a href="#">Все программы</a> &gt; <a href="#">Психология</a> &gt; <span class="cur">Режим энергосбережения</span>
+  </div>
+
+  <div class="capsule">
+    <div class="kicker">Демо-версия · Инди-практика</div>
+    <h1>Режим энергосбережения: как выжить при выгорании</h1>
+    <p class="tagline">
+      Батарейка на 3%, а от тебя требуют производительности как на полном заряде.
+      Демка на 10 минут, которая ставит тебя на паузу — без лекций на два часа.
+    </p>
+  </div>
+
+  <div class="main-row">
+    <div class="gallery">
+      <div class="gallery-main">заглушка · главный скрин — упражнение «батарейка» на телефоне</div>
+      <div class="gallery-thumbs">
+        <div class="thumb">карточка практики дня</div>
+        <div class="thumb">скрипт на отказ</div>
+        <div class="thumb">чек-лист красных флагов</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="logo-box">
+        <div class="mark"><svg><use href="#ic-battery"/></svg></div>
+        <div class="copy">
+          <div class="name">Режим энергосбережения</div>
+          <div class="desc">Психолог, телесный терапевт. draft: имя и короткое представление автора.</div>
+        </div>
+      </div>
+
+      <div class="buy-box">
+        <div class="discount-row">
+          <span class="off-pill">−29%</span>
+          <span style="color:var(--text-dim); font-size:.78rem;">демо-цена</span>
+        </div>
+        <div class="price-line">
+          <span class="old">690 ₽</span>
+          <span class="new">490 ₽</span>
+        </div>
+        <button class="btn-buy">Купить «Режим энергосбережения»</button>
+        <div class="honest-note">Демо честное: без даунсейла на созвон с менеджером после покупки.</div>
+      </div>
+
+      <div class="tags-box">
+        <div class="h">Теги продукта</div>
+        <div class="tags">
+          <span class="tag">Психология</span>
+          <span class="tag">Self-care</span>
+          <span class="tag">Инди-практика</span>
+          <span class="tag">Single-player</span>
+          <span class="tag">Ранний доступ к себе</span>
+        </div>
+      </div>
+
+      <div class="review-box">
+        <div class="h">Обзоры пользователей</div>
+        <div class="review-state">Крайне положительные
+          <small>draft-% — реальная цифра появится после первых прохождений</small>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <dl>
+          <dt>Эксперт</dt>
+          <dd>draft: психолог / телесный терапевт — имя уточнить</dd>
+          <dt>Формат</dt>
+          <dd>самостоятельно, в своём темпе</dd>
+          <dt>Длительность</dt>
+          <dd>~10 минут на демо-упражнение</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="features-row">
+    <div class="feature"><svg><use href="#ic-headphones"/></svg><span>Наушники (по желанию)</span></div>
+    <div class="feature"><svg><use href="#ic-clock"/></svg><span>10 минут тишины</span></div>
+    <div class="feature"><svg><use href="#ic-bed"/></svg><span>Можно лежать</span></div>
+    <div class="feature"><svg><use href="#ic-trophy"/></svg><span>5 достижений внутри</span></div>
+  </div>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Бандл: «Ментальное здоровье 40+»</h2>
+      <p class="sub">Берёшь демку — система сразу предлагает докупить полную версию со скидкой.</p>
+      <div class="bundle">
+        <div class="items">
+          <div class="item-row"><span>Режим энергосбережения (эта демка)</span><span>490 ₽</span></div>
+          <div class="item-row"><span>draft: основной курс эксперта — уточнить название и цену</span><span>draft</span></div>
+        </div>
+        <div class="buy">
+          <span class="off-pill">−30%</span>
+          <span class="old">draft ₽</span>
+          <span class="new">draft ₽</span>
+          <button class="btn-buy" style="margin-top:8px;">Купить бандл</button>
+        </div>
+      </div>
+      <p class="bundle-note">draft: нужен второй продукт для бандла — курс того же эксперта или смежного специалиста.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>DLC — докупи отдельно</h2>
+      <p class="sub">Мини-дополнения к демке, без обязательной привязки к покупке полного курса.</p>
+      <div class="dlc-list">
+        <div class="dlc-row">
+          <div><div class="name">Аудио-медитация «Выключить голову»</div><div class="desc">12 минут, для бессонницы от тревоги</div></div>
+          <div class="price">150 ₽</div>
+        </div>
+        <div class="dlc-row">
+          <div><div class="name">Набор «Скрипты на отказ»</div><div class="desc">5 готовых фраз, чтобы сказать «нет» без чувства вины</div></div>
+          <div class="price">200 ₽</div>
+        </div>
+        <div class="dlc-row">
+          <div><div class="name">Чек-лист «Красные флаги дня»</div><div class="desc">Заметить сгорание за 2 часа до, а не после</div></div>
+          <div class="price">150 ₽</div>
+        </div>
+        <div class="dlc-row">
+          <div><div class="name">Аудио «Тело говорит первым»</div><div class="desc">15 минут телесной практики от терапевта</div></div>
+          <div class="price">300 ₽</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Системные требования</h2>
+      <div class="req-cols">
+        <div>
+          <h3>Минимальные</h3>
+          <ul>
+            <li><b>Устройство:</b> смартфон или любой экран</li>
+            <li><b>Тишина:</b> 10 минут без прерываний</li>
+            <li><b>Звук:</b> наушники — по желанию</li>
+            <li><b>Поза:</b> готовность честно полежать</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Рекомендуемые</h3>
+          <ul>
+            <li><b>Комната:</b> куда никто не зайдёт с вопросом</li>
+            <li><b>Телефон:</b> авиарежим на эти 10 минут</li>
+            <li><b>Планы:</b> согласие, что сегодня можно ничего не успеть</li>
+            <li><b>Настрой:</b> без «между делом», в один присест</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Достижения</h2>
+      <div class="ach-grid">
+        <div class="ach"><div class="icon"><svg><use href="#ic-trophy"/></svg></div><div><div class="name">Первая пауза</div><div class="cond">Включил демо и не закрыл в первые 30 секунд</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-trophy"/></svg></div><div><div class="name">Батарейка на 12%</div><div class="cond">Прошёл упражнение на восстановление энергии целиком</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-trophy"/></svg></div><div><div class="name">Сказал нет</div><div class="cond">Применил один из скриптов на отказ в жизни</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-trophy"/></svg></div><div><div class="name">Тихий час</div><div class="cond">Выдержал 10 минут без телефона</div></div></div>
+        <div class="ach"><div class="icon"><svg><use href="#ic-trophy"/></svg></div><div><div class="name">Не сгорел сегодня</div><div class="cond">Заметил у себя красный флаг раньше, чем рухнул</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="panel">
+      <h2>Обзоры пользователей</h2>
+      <p class="sub">Крайне положительные (draft-% — появится после первых прохождений)</p>
+      <div class="reviews-list">
+        <div class="review-card">
+          <div class="thumb-up">👍</div>
+          <div class="body">
+            Думал, это очередная лекция про баланс работы и жизни. Нет — тычешься носом
+            в то, что сам вообще не замечал за собой. Прошёл лежа, как и обещали,
+            и это сработало.
+            <div class="meta">Проведено часов в курсе: 0.3 ч. · draft-дата</div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="thumb-up">👍</div>
+          <div class="body">
+            Купил DLC со скриптами на отказ на следующий день после демки.
+            Впервые за месяц сказал начальнику «нет» и не извинялся три раза подряд.
+            <div class="meta">Проведено часов в курсе: 1.2 ч. · draft-дата</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    Черновик страницы продукта «Режим энергосбережения», собран по визуальному языку Steam. Все тексты — draft.
+  </div>
+</footer>
+
+</body>
+</html>
