@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кейс: страницы продукта в разных стилях</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f3ee;
+    --card:#ffffff;
+    --ink:#26241f;
+    --ink-dim:#6b6658;
+    --accent:#3d5a80;
+    --accent-2:#b0723f;
+    --line:#e2ddd0;
+    --font-display:"Fraunces", Georgia, serif;
+    --font-body:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); line-height:1.6;}
+  .wrap{max-width:900px; margin:0 auto; padding:0 22px;}
+  header{padding:56px 0 30px; border-bottom:1px solid var(--line);}
+  header .kicker{color:var(--accent); font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700;}
+  h1{font-family:var(--font-display); font-size:2.2rem; margin:10px 0 12px; text-wrap:balance;}
+  header p{color:var(--ink-dim); max-width:600px; font-size:1.02rem;}
+
+  .group{padding:40px 0; border-bottom:1px solid var(--line);}
+  .group h2{font-family:var(--font-display); font-size:1.4rem; margin:0 0 6px;}
+  .group .group-note{color:var(--ink-dim); font-size:.92rem; margin:0 0 22px; max-width:620px;}
+
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .card .ver{font-size:.72rem; color:var(--accent-2); text-transform:uppercase; letter-spacing:.05em; font-weight:700;}
+  .card h3{margin:0; font-size:1.08rem;}
+  .card p{margin:0; color:var(--ink-dim); font-size:.88rem; flex:1;}
+  .card a{
+    align-self:flex-start; color:var(--accent); font-weight:600; font-size:.9rem; text-decoration:none;
+    border-bottom:1px solid transparent;
+  }
+  .card a:hover{border-bottom-color:var(--accent);}
+
+  .takeaway{padding:44px 0 60px;}
+  .takeaway h2{font-family:var(--font-display); font-size:1.3rem; margin:0 0 14px;}
+  .takeaway ul{padding-left:20px; color:var(--ink-dim); font-size:.95rem;}
+  .takeaway li{margin-bottom:8px;}
+
+  footer{padding:24px 0 44px; color:#a39c88; font-size:.78rem;}
+
+  @media (max-width:600px){
+    h1{font-size:1.7rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Учебный кейс · Модуль 1</div>
+    <h1>Одна страница продукта — пять разных обёрток</h1>
+    <p>
+      Один и тот же контент можно упаковать в совершенно разный визуальный язык
+      без изменения смысла. Ниже — путь от типового лендинга до точной пастиш-стилизации
+      под конкретную платформу, на двух разных образовательных продуктах.
+    </p>
+  </header>
+
+  <section class="group">
+    <h2>«Поток» — программа поиска предназначения</h2>
+    <p class="group-note">Один контент, четыре стилевых версии: от типового лендинга до точной Steam-стилизации.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="ver">Версия 1</div>
+        <h3>Типовой лендинг</h3>
+        <p>Тёмный фон, оранжевый акцент, скруглённые карточки — стандартная упаковка образовательного продукта.</p>
+        <a href="https://brimtv.github.io/arina-pages/p/product-page/" target="_blank" rel="noopener">Открыть →</a>
+      </div>
+      <div class="card">
+        <div class="ver">Версия 2</div>
+        <h3>Бирюзовый океан</h3>
+        <p>Палитра и кит-финвал по референсу автора курса: волны-разделители, плавная типографика.</p>
+        <a href="https://brimtv.github.io/arina-pages/p/product-page-v2/" target="_blank" rel="noopener">Открыть →</a>
+      </div>
+      <div class="card">
+        <div class="ver">Версия 3</div>
+        <h3>Точная стилистика Steam</h3>
+        <p>Разбор конкретной Steam-страницы блок за блоком: капсула, сайдбар покупки, теги, достижения.</p>
+        <a href="https://brimtv.github.io/arina-pages/p/product-page-v3/" target="_blank" rel="noopener">Открыть →</a>
+      </div>
+      <div class="card">
+        <div class="ver">Версия 4</div>
+        <h3>Доработка Steam-стиля</h3>
+        <p>Логотип-кит, один тариф вместо трёх, раскрывающееся описание, блок «Похожие программы».</p>
+        <a href="https://brimtv.github.io/arina-pages/p/product-page-v4/" target="_blank" rel="noopener">Открыть →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>«Режим бережного восстановления» — демо-курс о выгорании</h2>
+    <p class="group-note">Тот же каркас блоков (мини-продукт, бандл, дополнения, требования, ачивки, отзывы) — два противоположных языка.</p>
+    <div class="cards">
+      <div class="card">
+        <div class="ver">Подход 1</div>
+        <h3>Геймерский Steam-стиль</h3>
+        <p>DLC, бандлы, достижения, системные требования — прямая геймификация по мотивам Steam.</p>
+        <a href="https://brimtv.github.io/arina-pages/p/burnout-demo/" target="_blank" rel="noopener">Открыть →</a>
+      </div>
+      <div class="card">
+        <div class="ver">Подход 2</div>
+        <h3>Мягкий wellness-язык</h3>
+        <p>Те же блоки без игрового жаргона: «вехи пути», «полезные спутники», тёплая палитра вместо тёмной.</p>
+        <a href="https://brimtv.github.io/arina-pages/p/care-mode/" target="_blank" rel="noopener">Открыть →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <h2>Что показывает этот кейс</h2>
+    <ul>
+      <li>Структура блоков и стиль — независимые решения: один каркас можно переодеть в любую эстетику.</li>
+      <li>Точный промпт с конкретным референсом (ссылка + разбор блок за блоком) даёт совсем другой результат, чем общая формулировка «сделай как X».</li>
+      <li>Одна и та же геймификация (ачивки, бандлы, прогресс) звучит по-разному в зависимости от тона: азарт vs забота о себе.</li>
+    </ul>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">Учебный проект Арины · вайбкодинг с нуля · модуль 1</div>
+</footer>
+
+</body>
+</html>
